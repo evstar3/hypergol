@@ -2,6 +2,7 @@
 
 import re
 import threading
+import random
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
@@ -21,6 +22,7 @@ class HyperbolicAutomaton():
 
         self.collection = self.ax.collections[0]
 
+        self.color_lock = threading.Lock()
         self.facecolors = [self.DEAD] * self.num_cells()
 
         for i in range(self.num_cells()):
@@ -70,16 +72,19 @@ class HyperbolicAutomaton():
             self._survive = set(map(int, match[2]))
 
     def set(self, index, alive=True):
-        self.facecolors[index] = self.ALIVE if alive else self.DEAD
+        with self.color_lock:
+            self.facecolors[index] = self.ALIVE if alive else self.DEAD
 
     def toggle(self, index):
-        if self.facecolors[index] == self.DEAD:
-            self.facecolors[index] = self.ALIVE
-        else:
-            self.facecolors[index] = self.DEAD
+        with self.color_lock:
+            if self.facecolors[index] == self.DEAD:
+                self.facecolors[index] = self.ALIVE
+            else:
+                self.facecolors[index] = self.DEAD
 
     def draw(self):
-        self.collection.set_facecolor(self.facecolors)
+        with self.color_lock:
+            self.collection.set_facecolor(self.facecolors)
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
 
@@ -96,7 +101,12 @@ class HyperbolicAutomaton():
                         or (self.facecolors[i] == self.DEAD and nbrs_alive in self._born)):
                     new_colors[i] = self.ALIVE
 
-            self.facecolors = new_colors
+            with self.color_lock:
+                self.facecolors = new_colors
+
+    def randomize(self):
+        with self.color_lock:
+            self.facecolors = [random.choice([self.ALIVE, self.DEAD]) for _ in range(self.num_cells())]
 
     def start(self):
         self.running.set()

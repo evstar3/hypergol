@@ -2,6 +2,7 @@
 
 import threading
 import signal
+import sys
 import matplotlib.pyplot as plt
 
 from hypergol.automaton import HyperbolicAutomaton

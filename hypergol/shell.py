@@ -58,7 +58,13 @@ class HypergolShell(cmd.Cmd):
         rate = float(arg)
         self.automaton.set_rate(rate)
 
+    def do_randomize(self, arg):
+        '''Randomize all cells:   randomize'''
+        self.automaton.randomize()
+        self.automaton.draw_barrier.wait()
+
     def do_exit(self, arg):
+        print('exiting')
         self.automaton.draw_barrier.abort()
         return True
 
