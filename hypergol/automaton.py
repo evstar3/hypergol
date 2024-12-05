@@ -7,8 +7,9 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
 from hypertiling import HyperbolicTiling
-from hypertiling.graphics.plot import plot_tiling
+from hypertiling.graphics.plot import plot_tiling, convert_polygons_to_patches
 from time import sleep
+from matplotlib.collections import PatchCollection
 
 class HyperbolicAutomaton():
     DEAD = mcolors.to_rgba('white')
@@ -16,19 +17,14 @@ class HyperbolicAutomaton():
 
     def __init__(self, *args, **kwargs):
         self.tiling = HyperbolicTiling(*args, **kwargs)
+        self.center = self.tiling.get_center(0)
 
-        self.ax = plot_tiling(self.tiling)
+        self.ax = plot_tiling(self.tiling, dpi=250)
         self.fig = self.ax.get_figure()
-
-        self.collection = self.ax.collections[0]
+        self.texts = []
 
         self.color_lock = threading.Lock()
         self.facecolors = [self.DEAD] * self.num_cells()
-
-        for i in range(self.num_cells()):
-            z = self.tiling.get_center(i)
-            l = self.tiling.get_layer(i)
-            t = plt.text(z.real, z.imag, str(i), fontsize=15-4*l, ha="center", va="center")
 
         self.draw_barrier = threading.Barrier(2)
         self.draw()
@@ -56,7 +52,7 @@ class HyperbolicAutomaton():
         self.run_thread.join()
 
     def num_cells(self):
-        return len(self.collection.get_paths())
+        return len(self.ax.collections[-1].get_paths())
 
     def set_rate(self, rate):
         with self.rate_lock:
@@ -82,9 +78,24 @@ class HyperbolicAutomaton():
             else:
                 self.facecolors[index] = self.DEAD
 
+    def translate(self, index):
+        self.center = self.tiling.get_center(index)
+        self.tiling.translate(self.center)
+
     def draw(self):
+        self.ax.collections[0].remove()
+        for txt in self.texts:
+            txt.remove()
+        self.texts.clear()
+
+        pgons = convert_polygons_to_patches(self.tiling)
+        self.ax.add_collection(pgons)
+        for i in range(self.num_cells()):
+            z = self.tiling.get_center(i)
+            l = self.tiling.get_layer(i)
+            self.texts.append(plt.text(z.real, z.imag, str(i), fontsize=6, ha="center", va="center"))
         with self.color_lock:
-            self.collection.set_facecolor(self.facecolors)
+            self.ax.collections[-1].set_facecolor(self.facecolors)
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
 

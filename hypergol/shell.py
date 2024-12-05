@@ -63,6 +63,13 @@ class HypergolShell(cmd.Cmd):
         self.automaton.randomize()
         self.automaton.draw_barrier.wait()
 
+    def do_move(self, arg):
+        '''Center the display over the cell with given index:   move 7'''
+        index = next(map(int, arg.split()))
+
+        self.automaton.translate(index)
+        self.automaton.draw_barrier.wait()
+
     def do_exit(self, arg):
         print('exiting')
         self.automaton.draw_barrier.abort()
