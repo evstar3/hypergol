@@ -1,15 +1,35 @@
 #!/usr/bin/env python3
 
-from hypergol.automaton import HyperbolicAutomaton
-from hypergol.shell import HypergolShell
+import threading
+import signal
 import matplotlib.pyplot as plt
 
+from hypergol.automaton import HyperbolicAutomaton
+from hypergol.shell import HypergolShell
+
 def main():
-    tiling = HyperbolicAutomaton(7, 3, 4)
     plt.ion()
     plt.show()
+    with HyperbolicAutomaton(7, 3, 4) as automaton:
+        shell = HypergolShell(automaton)
 
-    HypergolShell(tiling).cmdloop()
+        def handler(signum, frame):
+            print('^C')
+            print(shell.prompt, end='', flush=True)
+
+        signal.signal(signal.SIGINT, handler)
+
+        io_thread = threading.Thread(target=shell.cmdloop)
+        io_thread.start()
+
+        while io_thread.is_alive():
+            try:
+                automaton.draw_barrier.wait()
+                automaton.draw()
+            except threading.BrokenBarrierError:
+                break
+
+        io_thread.join()
 
 if __name__ == '__main__':
     main()
