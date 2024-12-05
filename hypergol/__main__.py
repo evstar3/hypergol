@@ -3,15 +3,29 @@
 import threading
 import signal
 import sys
+import argparse
 import matplotlib.pyplot as plt
 
 from hypergol.automaton import HyperbolicAutomaton
 from hypergol.shell import HypergolShell
 
 def main():
+    parser = argparse.ArgumentParser(
+        description='Hyperbolic cellular automata simulator'
+    )
+
+    parser.add_argument('p', help='number of sides to a polygon', type=int)
+    parser.add_argument('q', help='number of polygons around a vertex', type=int)
+    parser.add_argument('-l', '--layers', required=False, default=5, type=int)
+
+    args = parser.parse_args()
+
+    if args.layers < 1:
+        raise RuntimeError('number of layers must be greater than 0')
+
     plt.ion()
     plt.show()
-    with HyperbolicAutomaton(8, 3, 4) as automaton:
+    with HyperbolicAutomaton(args.p, args.q, args.layers) as automaton:
         shell = HypergolShell(automaton)
 
         def handler(signum, frame):

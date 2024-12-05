@@ -87,6 +87,7 @@ class HypergolShell(cmd.Cmd):
 
     def do_exit(self, arg):
         print('exiting')
+        self.do_stop(None)
         self.automaton.draw_barrier.abort()
         return True
 
