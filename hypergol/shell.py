@@ -9,6 +9,11 @@ class HypergolShell(cmd.Cmd):
         super().__init__()
         self.automaton = automaton
 
+    def draw(self):
+        self.automaton.draw_done.clear()
+        self.automaton.draw_barrier.wait()
+        self.automaton.draw_done.wait()
+
     def do_set(self, arg):
         '''Set any number of cells by index:   set 2 3 5'''
         cells = map(int, arg.split())
@@ -16,7 +21,7 @@ class HypergolShell(cmd.Cmd):
         for cell in cells:
             self.automaton.set(cell)
 
-        self.automaton.draw_barrier.wait()
+        self.draw()
 
     def do_kill(self, arg):
         '''Kill any number of cells by index:   kill 2 3 5'''
@@ -25,7 +30,14 @@ class HypergolShell(cmd.Cmd):
         for cell in cells:
             self.automaton.set(cell, alive=False)
 
-        self.automaton.draw_barrier.wait()
+        self.draw()
+
+    def do_clear(self, arg):
+        '''Kill all cells:   clear'''
+        for cell in self.automaton.tiling.polygons:
+            self.automaton.set(cell, alive=False)
+
+        self.draw()
 
     def do_toggle(self, arg):
         '''Toggle any number of cells by index:   toggle 2 3 5'''
@@ -34,16 +46,19 @@ class HypergolShell(cmd.Cmd):
         for cell in cells:
             self.automaton.toggle(cell)
 
-        self.automaton.draw_barrier.wait()
+        self.draw()
 
     def do_rule(self, arg):
-        '''Update the automaton rule:   rule b3/s23'''
-        self.automaton.set_rule(arg)
+        '''Show current rule:   rule\nUpdate the automaton rule:   rule b3/s23'''
+        if arg:
+            self.automaton.set_rule(arg)
+        else:
+            print(self.automaton.get_rule())
 
     def do_step(self, arg):
         '''Update the cellular auomaton by running the rule on every cell once:   step'''
         self.automaton.step()
-        self.automaton.draw_barrier.wait()
+        self.draw()
 
     def do_run(self, arg):
         '''Step the cellular automaton at regular intervals, as specified by rate:   run'''
@@ -61,14 +76,14 @@ class HypergolShell(cmd.Cmd):
     def do_randomize(self, arg):
         '''Randomize all cells:   randomize'''
         self.automaton.randomize()
-        self.automaton.draw_barrier.wait()
+        self.draw()
 
     def do_move(self, arg):
         '''Center the display over the cell with given index:   move 7'''
         index = next(map(int, arg.split()))
 
         self.automaton.translate(index)
-        self.automaton.draw_barrier.wait()
+        self.draw()
 
     def do_exit(self, arg):
         print('exiting')

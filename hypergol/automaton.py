@@ -3,20 +3,38 @@
 import re
 import threading
 import random
+import types
+import time
+import math
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
 from hypertiling import HyperbolicTiling
 from hypertiling.graphics.plot import plot_tiling, convert_polygons_to_patches
-from time import sleep
-from matplotlib.collections import PatchCollection
+from hypertiling.arraytransformation import morigin
+from hypertiling.distance import disk_distance
+
+def fixed_translate(self, z):
+    """
+    Translates the whole tiling so that the point z lays in the origin.
+
+    Parameters
+    ----------
+    z: complex
+        The point which will be translated to the origin.
+    """
+
+    for index, poly in self.polygons.items():
+        morigin(self.p, z, poly.get_polygon())
 
 class HyperbolicAutomaton():
     DEAD = mcolors.to_rgba('white')
     ALIVE = mcolors.to_rgba('blue')
 
-    def __init__(self, *args, **kwargs):
-        self.tiling = HyperbolicTiling(*args, **kwargs)
+    def __init__(self, *args):
+        self.tiling = HyperbolicTiling(*args, kernel='SRG')
+        self.tiling.translate = types.MethodType(fixed_translate, self.tiling)
+
         self.center = self.tiling.get_center(0)
 
         self.ax = plot_tiling(self.tiling, dpi=250)
@@ -24,9 +42,10 @@ class HyperbolicAutomaton():
         self.texts = []
 
         self.color_lock = threading.Lock()
-        self.facecolors = [self.DEAD] * self.num_cells()
+        self.facecolors = [self.DEAD] * len(self.tiling)
 
         self.draw_barrier = threading.Barrier(2)
+        self.draw_done = threading.Event()
         self.draw()
 
         self.rule_lock = threading.Lock()
@@ -51,12 +70,13 @@ class HyperbolicAutomaton():
         self.alive.clear()
         self.run_thread.join()
 
-    def num_cells(self):
-        return len(self.ax.collections[-1].get_paths())
-
     def set_rate(self, rate):
         with self.rate_lock:
             self._rate = rate
+
+    def get_rule(self):
+        with self.rule_lock:
+            return 'b' + ''.join(str(b) for b in self._born) + '/' + 's' + ''.join(str(s) for s in self._survive)
 
     def set_rule(self, rule_str):
         with self.rule_lock:
@@ -82,6 +102,18 @@ class HyperbolicAutomaton():
         self.center = self.tiling.get_center(index)
         self.tiling.translate(self.center)
 
+        def existing_cell_filter(z):
+            cutoff = 0.05
+            for poly in self.tiling.polygons.values():
+                center = poly.get_polygon()[-1]
+                dist = disk_distance(z, center)
+                if dist < cutoff:
+                    return False
+            return True
+
+        if index in self.tiling.exposed:
+            self.tiling.add_layer((index,), filter=existing_cell_filter)
+
     def draw(self):
         self.ax.collections[0].remove()
         for txt in self.texts:
@@ -90,10 +122,10 @@ class HyperbolicAutomaton():
 
         pgons = convert_polygons_to_patches(self.tiling)
         self.ax.add_collection(pgons)
-        for i in range(self.num_cells()):
+        for i in self.tiling.polygons:
             z = self.tiling.get_center(i)
-            l = self.tiling.get_layer(i)
-            self.texts.append(plt.text(z.real, z.imag, str(i), fontsize=6, ha="center", va="center"))
+            dist = math.dist((0,0), (z.real, z.imag))
+            self.texts.append(plt.text(z.real, z.imag, str(i), fontsize=15-13*dist, ha="center", va="center"))
         with self.color_lock:
             self.ax.collections[-1].set_facecolor(self.facecolors)
         self.fig.canvas.draw()
@@ -101,9 +133,9 @@ class HyperbolicAutomaton():
 
     def step(self):
         with self.rule_lock:
-            new_colors = [self.DEAD] * self.num_cells()
+            new_colors = [self.DEAD] * len(self.tiling)
 
-            for i in range(self.num_cells()):
+            for i in self.tiling.polygons:
                 neighbors = self.tiling.get_nbrs(i)
 
                 nbrs_alive = sum(int(self.facecolors[neighbor] == self.ALIVE) for neighbor in neighbors)
@@ -117,7 +149,7 @@ class HyperbolicAutomaton():
 
     def randomize(self):
         with self.color_lock:
-            self.facecolors = [random.choice([self.ALIVE, self.DEAD]) for _ in range(self.num_cells())]
+            self.facecolors = [random.choice([self.ALIVE, self.DEAD]) for _ in range(len(self.tiling))]
 
     def start(self):
         self.running.set()
@@ -132,4 +164,4 @@ class HyperbolicAutomaton():
                 self.draw_barrier.wait()
             with self.rate_lock:
                 interval = self._rate
-            sleep(interval)
+            time.sleep(interval)

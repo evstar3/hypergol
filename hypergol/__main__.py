@@ -11,7 +11,7 @@ from hypergol.shell import HypergolShell
 def main():
     plt.ion()
     plt.show()
-    with HyperbolicAutomaton(7, 3, 4) as automaton:
+    with HyperbolicAutomaton(8, 3, 4) as automaton:
         shell = HypergolShell(automaton)
 
         def handler(signum, frame):
@@ -27,6 +27,7 @@ def main():
             try:
                 automaton.draw_barrier.wait()
                 automaton.draw()
+                automaton.draw_done.set()
             except threading.BrokenBarrierError:
                 break
 
