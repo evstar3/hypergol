@@ -14,6 +14,17 @@ class HypergolShell(cmd.Cmd):
         self.automaton.draw_barrier.wait()
         self.automaton.draw_done.wait()
 
+    def do_number(self, arg):
+        '''Set numbering on / off:   number off'''
+        if arg == 'on':
+            self.automaton.set_draw_indices(True)
+        elif arg == 'off':
+            self.automaton.set_draw_indices(False)
+        else:
+            print(f'unrecognized option: {arg}')
+
+        self.draw()
+
     def do_set(self, arg):
         '''Set any number of cells by index:   set 2 3 5'''
         cells = map(int, arg.split())
@@ -49,7 +60,7 @@ class HypergolShell(cmd.Cmd):
         self.draw()
 
     def do_rule(self, arg):
-        '''Show current rule:   rule\nUpdate the automaton rule:   rule b3/s23'''
+        '''Show current rule:   rule\nUpdate the automaton rule:   rule b 2 s 2 3'''
         if arg:
             self.automaton.set_rule(arg)
         else:
@@ -74,8 +85,8 @@ class HypergolShell(cmd.Cmd):
         self.automaton.set_rate(rate)
 
     def do_randomize(self, arg):
-        '''Randomize all cells:   randomize'''
-        self.automaton.randomize()
+        '''Randomize all cells with equal probabilities:   randomize\nRandomize all cells with probability of being alive:   randomize 0.2'''
+        self.automaton.randomize(p_alive=float(arg))
         self.draw()
 
     def do_move(self, arg):

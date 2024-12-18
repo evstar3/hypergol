@@ -15,6 +15,7 @@ def main():
         description='Hyperbolic cellular automata simulator'
     )
 
+    parser.add_argument('rule', type=str)
     parser.add_argument('p', help='number of sides to a polygon', type=int)
     parser.add_argument('q', help='number of polygons around a vertex', type=int)
     parser.add_argument('-l', '--layers', help='number of layers to initially generate. default: 5', type=int, required=False, default=5)
@@ -24,9 +25,11 @@ def main():
     if args.layers < 1:
         raise RuntimeError('number of layers must be greater than 0')
 
-    plt.ion()
-    plt.show()
-    with HyperbolicAutomaton(args.p, args.q, args.layers) as automaton:
+    with HyperbolicAutomaton(args.rule, args.p, args.q, args.layers) as automaton:
+        plt.ion()
+        plt.show()
+        automaton.draw()
+
         shell = HypergolShell(automaton)
 
         def handler(signum, frame):
