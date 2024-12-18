@@ -41,15 +41,22 @@ class AutomatonState():
         return self.state_hash
 
 class Search():
-    def __init__(self, automaton, max_steps, seed=None, file: Path=None):
-        self.automaton = automaton
-        self.max_steps = max_steps
-        self.file = file
+    def __init__(self, rule, p, q, seed, layers=None, max_steps=None, file=None):
+        if layers is None:
+            layers = 5
 
-        if seed is None:
-            self.seed = time.time_ns()
+        self.automaton = HyperbolicAutomaton(rule, p, q, layers)
+        self.seed = seed
+
+        if file is None:
+            self.file = sys.stdout
         else:
-            self.seed = seed
+            self.file = file
+
+        if max_steps is None:
+            self.max_steps = 4096
+        else:
+            self.max_steps = max_steps
 
         random.seed(self.seed)
 
@@ -59,18 +66,6 @@ class Search():
         self.state_to_generation = {}
 
         self.automaton.randomize()
-
-    def __enter__(self):
-        if self.file:
-            self.fp = self.file.open('w')
-        else:
-            self.fp = sys.stdout
-
-        return self
-
-    def __exit__(self, *args):
-        if self.file:
-            self.fp.close()
 
     def print_config(self):
         config_dict = {
@@ -82,10 +77,10 @@ class Search():
             'seed': self.seed
         }
 
-        print(json.dumps(config_dict), file=self.fp)
+        print(json.dumps(config_dict), file=self.file)
 
     def print_prologue(self, reason):
-        print(f'{self.current_generation}: ' + reason, file=self.fp) 
+        print(f'{self.current_generation}: ' + reason, file=self.file) 
 
     def state_generator(self):
         while True:
@@ -116,25 +111,33 @@ class Search():
 
     def run(self, steps=None):
         for state in itertools.islice(self.state_generator(), steps):
-            print(f'{self.current_generation}: ' + state.summary(), file=self.fp)
+            print(f'{self.current_generation}: ' + state.summary(), file=self.file)
 
-def main():
-    parser = argparse.ArgumentParser()
+def main(args=None):
+    if args is None:
+        parser = argparse.ArgumentParser()
 
-    parser.add_argument('rule', type=str)
-    parser.add_argument('p', help='number of sides to a polygon', type=int)
-    parser.add_argument('q', help='number of polygons around a vertex', type=int)
-    parser.add_argument('-l', '--layers', type=int, default=5)
-    parser.add_argument('-n', '--max-steps', type=int, default=4096)
-    parser.add_argument('-s', '--seed', type=int)
-    parser.add_argument('-o', '--outfile', type=Path)
+        parser.add_argument('rule', type=str)
+        parser.add_argument('p', help='number of sides to a polygon', type=int)
+        parser.add_argument('q', help='number of polygons around a vertex', type=int)
+        parser.add_argument('-l', '--layers', type=int)
+        parser.add_argument('-n', '--max-steps', type=int)
+        parser.add_argument('-s', '--seed', type=int, default=time.time_ns())
+        parser.add_argument('-o', '--outfile', type=Path)
 
-    args = parser.parse_args()
+        args = parser.parse_args()
 
-    automaton = HyperbolicAutomaton(args.rule, args.p, args.q, args.layers)
-    with Search(automaton, args.max_steps, seed=args.seed, file=args.outfile) as search:
-        search.print_config()
-        search.run()
+    if args.outfile:
+        fp = args.outfile.open('w')
+    else:
+        fp = sys.stdout
+
+    search = Search(args.rule, args.p, args.q, args.seed, layers=args.layers, max_steps=args.max_steps, file=fp)
+    search.print_config()
+    search.run()
+
+    if args.outfile:
+        fp.close()
         
 if __name__ == '__main__':
     try:

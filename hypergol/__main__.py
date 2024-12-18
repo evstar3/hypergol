@@ -25,12 +25,13 @@ def main():
     if args.layers < 1:
         raise RuntimeError('number of layers must be greater than 0')
 
-    with HyperbolicAutomaton(args.rule, args.p, args.q, args.layers) as automaton:
+    automaton = HyperbolicAutomaton(args.rule, args.p, args.q, args.layers)
+
+    with HypergolShell(automaton) as shell:
         plt.ion()
         plt.show()
-        automaton.draw()
 
-        shell = HypergolShell(automaton)
+        shell.draw()
 
         def handler(signum, frame):
             print('^C')
@@ -41,13 +42,15 @@ def main():
         io_thread = threading.Thread(target=shell.cmdloop)
         io_thread.start()
 
-        while io_thread.is_alive():
+        while not shell.dead.is_set():
             try:
-                automaton.draw_barrier.wait()
-                automaton.draw()
-                automaton.draw_done.set()
+                shell.draw_barrier.wait(1)
             except threading.BrokenBarrierError:
-                break
+                shell.draw_barrier.reset()
+                continue
+            shell.draw()
+
+        shell.draw_barrier.abort()
 
         io_thread.join()
 
