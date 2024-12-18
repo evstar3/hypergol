@@ -11,7 +11,7 @@ from types import SimpleNamespace
 
 from search import Search
 
-ROOT_PATH = Path('results')
+ROOT_PATH = Path('results3')
 GEOMETRIES = (
     (3, 7),
     (4, 5),
@@ -33,9 +33,9 @@ def random_rule(max_neighbors):
 
     return ' '.join((
         'b',
-        ' '.join(str(i) for i in born),
+        ' '.join(map(str, sorted(born))),
         's',
-        ' '.join(str(i) for i in survive)
+        ' '.join(map(str, sorted(survive))),
     ))
 
 def run_search(config):
@@ -43,11 +43,10 @@ def run_search(config):
 
     outfile = Path(ROOT_PATH, f'{p}_{q}', rule.replace(' ', '_'), str(seed))
 
-    if outfile.exists():
+    if outfile.parent.is_dir():
         return
 
-    if not outfile.parent.is_dir():
-        outfile.parent.mkdir(parents=True)
+    outfile.parent.mkdir(parents=True, exist_ok=True)
 
     print(outfile)
 
@@ -61,6 +60,7 @@ def config_generator():
         p, q = random.choice(GEOMETRIES)
         max_neighbors = p * (q - 2)
         rule = random_rule(max_neighbors)
+
         for _ in range(3):
             if not RUNNING:
                 break
@@ -104,7 +104,7 @@ def main():
 
             children.remove(pid)
 
-        while RUNNING and len(children) < max_children:
+        if RUNNING and len(children) < max_children:
             pid = os.fork()
             if pid == 0:
                 # child process

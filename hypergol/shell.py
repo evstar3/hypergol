@@ -3,6 +3,7 @@
 import cmd
 import threading
 import math
+import time
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
@@ -128,7 +129,7 @@ class HypergolShell(cmd.Cmd):
         for _ in range(steps):
             with self.automaton_lock:
                 self.automaton.step()
-            self.draw_barrier.wait()
+        self.draw_barrier.wait()
 
     def do_run(self, arg):
         '''Step the cellular automaton at regular intervals, as specified by rate:   run'''
@@ -192,6 +193,7 @@ class HypergolShell(cmd.Cmd):
             if self.draw_barrier.broken:
                 continue
 
+            start = time.time()
             with self.automaton_lock:
                 self.automaton.step()
 
@@ -200,4 +202,8 @@ class HypergolShell(cmd.Cmd):
             except threading.BrokenBarrierError:
                 continue
 
-            self.dead.wait(self.rate)
+            end = time.time()
+
+            remaining = self.rate - (end - start)
+            if remaining > 0:
+                self.dead.wait(remaining)

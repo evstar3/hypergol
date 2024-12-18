@@ -46,6 +46,7 @@ class HyperbolicAutomaton():
         ))
 
     def set_rule(self, rule_str):
+        rule_str = rule_str.replace('_', ' ')
         matches = re.fullmatch(r'b([0-9 ]*)s([0-9 ]*)', rule_str)
 
         if not matches:

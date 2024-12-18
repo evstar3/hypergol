@@ -7,6 +7,7 @@ import json
 import sys
 import os
 import itertools
+import statistics
 
 from collections import defaultdict
 from pathlib import Path
@@ -81,6 +82,27 @@ class Search():
 
     def print_prologue(self, reason):
         print(f'{self.current_generation}: ' + reason, file=self.file) 
+
+        for state_type in self.automaton.States:
+            counts = [state.counts[state_type] for state in self.states]
+            max_count = max(counts)
+            min_count = min(counts)
+            sd_count = statistics.stdev(counts)
+            print(f'{state_type.name} MAX_COUNT={max_count}', file=self.file)
+            print(f'{state_type.name} MIN_COUNT={min_count}', file=self.file)
+            print(f'{state_type.name} RANGE_COUNT={max_count - min_count}', file=self.file)
+            print(f'{state_type.name} STDEV_COUNT={sd_count}', file=self.file)
+
+            diffs = [counts[i + 1] - counts[i] for i in range(self.current_generation - 1)]
+            max_diff = max(diffs)
+            min_diff = min(diffs)
+            sd_diff = statistics.stdev(diffs)
+            print(f'{state_type.name} MAX_DIFF={max_diff}', file=self.file)
+            print(f'{state_type.name} MIN_DIFF={min_diff}', file=self.file)
+            print(f'{state_type.name} RANGE_DIFF={max_diff - min_diff}', file=self.file)
+            print(f'{state_type.name} STDEV_DIFF={sd_diff}', file=self.file)
+
+        print('### DONE ###', file=self.file)
 
     def state_generator(self):
         while True:
