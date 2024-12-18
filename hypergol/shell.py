@@ -115,10 +115,20 @@ class HypergolShell(cmd.Cmd):
             print(self.automaton.get_rule())
 
     def do_step(self, arg):
-        '''Update the cellular auomaton by running the rule on every cell once:   step'''
-        with self.automaton_lock:
-            self.automaton.step()
-        self.draw_barrier.wait()
+        '''Update the cellular auomaton by running the rule on every cell once:   step\nStep multiple times:   step 5'''
+        if arg:
+            try:
+                steps = int(arg.split()[0])
+            except ValueError:
+                print(f'invalid number of steps: {arg}')
+                return
+        else:
+            steps = 1
+
+        for _ in range(steps):
+            with self.automaton_lock:
+                self.automaton.step()
+            self.draw_barrier.wait()
 
     def do_run(self, arg):
         '''Step the cellular automaton at regular intervals, as specified by rate:   run'''
@@ -136,18 +146,24 @@ class HypergolShell(cmd.Cmd):
                 rate = float(rate_str)
                 assert rate >= 0
                 self.rate = rate
-            except Exception:
+            except (ValueError, AssertionError):
                 print(f'invalid rate: {rate_str}')
+                return
         else:
             print(self.rate)
 
     def do_randomize(self, arg):
         '''Randomize all cells with equal probabilities:   randomize\nRandomize all cells with probability of being alive:   randomize 0.2'''
-        try:
-            p_alive = float(arg)
-            assert p_alive >= 0
-        except Exception:
+        if arg:
+            try:
+                p_alive = float(arg)
+                assert p_alive >= 0
+            except (ValueError, AssertionError):
+                print(f'invalid probability: {arg}')
+                return
+        else:
             p_alive = 0.5
+
         with self.automaton_lock:
             self.automaton.randomize(p_alive)
         self.draw_barrier.wait()

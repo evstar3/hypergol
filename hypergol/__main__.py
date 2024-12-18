@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import random
 import threading
 import signal
 import sys
@@ -19,11 +20,14 @@ def main():
     parser.add_argument('p', help='number of sides to a polygon', type=int)
     parser.add_argument('q', help='number of polygons around a vertex', type=int)
     parser.add_argument('-l', '--layers', help='number of layers to initially generate. default: 5', type=int, required=False, default=5)
+    parser.add_argument('-s', '--seed', type=int)
 
     args = parser.parse_args()
 
     if args.layers < 1:
         raise RuntimeError('number of layers must be greater than 0')
+
+    random.seed(args.seed)
 
     automaton = HyperbolicAutomaton(args.rule, args.p, args.q, args.layers)
 
