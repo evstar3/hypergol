@@ -65,7 +65,7 @@ class Search():
         self.states = []
         self.state_to_generation = {}
 
-        self.automaton.randomize()
+        self.automaton.randomize(0.5)
 
     def print_config(self):
         config_dict = {

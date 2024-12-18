@@ -4,6 +4,7 @@ import random
 import signal
 import sys
 import os
+import argparse
 
 from pathlib import Path
 from types import SimpleNamespace
@@ -12,7 +13,12 @@ from search import Search
 
 ROOT_PATH = Path('results')
 GEOMETRIES = (
+    (3, 7),
     (4, 5),
+    (5, 4),
+    (6, 4),
+    (7, 3),
+    (8, 3)
 )
 RUNNING = True
 
@@ -80,7 +86,8 @@ def main():
                 os.kill(child, signal.SIGKILL)
             sys.exit(0)
 
-    signal.signal(signal.SIGINT | signal.SIGTERM, graceful_shutdown)
+    signal.signal(signal.SIGINT, graceful_shutdown)
+    signal.signal(signal.SIGTERM, graceful_shutdown)
 
     for config in config_generator():
         if len(children) == max_children:
@@ -102,6 +109,7 @@ def main():
             if pid == 0:
                 # child process
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
+                signal.signal(signal.SIGTERM, signal.SIG_IGN)
                 run_search(config)
                 sys.exit(0)
             else:
