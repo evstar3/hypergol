@@ -42,7 +42,7 @@ class AutomatonState():
         return self.state_hash
 
 class Search():
-    def __init__(self, rule, p, q, seed, layers=None, max_steps=None, file=None):
+    def __init__(self, rule, p, q, seed, layers=None, max_steps=None, file=None, init=None):
         if layers is None:
             layers = 5
 
@@ -66,7 +66,11 @@ class Search():
         self.states = []
         self.state_to_generation = {}
 
-        self.automaton.randomize(0.5)
+        if init is None:
+            init = (0.5, None)
+
+        self.init = init
+        self.automaton.randomize(p_alive=init[0], limit=init[1])
 
     def print_config(self):
         config_dict = {
@@ -75,7 +79,8 @@ class Search():
             'q': self.automaton.tiling.q,
             'layers': self.automaton.tiling.n,
             'max_steps': self.max_steps,
-            'seed': self.seed
+            'seed': self.seed,
+            'init': self.init
         }
 
         print(json.dumps(config_dict), file=self.file)
@@ -146,6 +151,7 @@ def main(args=None):
         parser.add_argument('-n', '--max-steps', type=int)
         parser.add_argument('-s', '--seed', type=int, default=time.time_ns())
         parser.add_argument('-o', '--outfile', type=Path)
+        parser.add_argument('-i', '--init', nargs=2)
 
         args = parser.parse_args()
 
@@ -154,7 +160,11 @@ def main(args=None):
     else:
         fp = sys.stdout
 
-    search = Search(args.rule, args.p, args.q, args.seed, layers=args.layers, max_steps=args.max_steps, file=fp)
+    if args.init:
+        print(args.init)
+        args.init = float(args.init[0]), int(args.init[1])
+
+    search = Search(args.rule, args.p, args.q, args.seed, layers=args.layers, max_steps=args.max_steps, file=fp, init=args.init)
     search.print_config()
     search.run()
 

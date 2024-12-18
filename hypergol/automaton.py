@@ -99,5 +99,9 @@ class HyperbolicAutomaton():
 
         self.states = new_states
 
-    def randomize(self, p_alive):
-        self.states = random.choices(list(self.States), weights=(1 - p_alive, p_alive), k=len(self.tiling))
+    def randomize(self, p_alive=0.5, limit=None):
+        if limit is None:
+            limit = len(self.states)
+
+        for i in range(len(self.states[:limit])):
+            self.states[i] = self.States.ALIVE if random.random() < p_alive else self.States.DEAD

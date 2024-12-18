@@ -51,7 +51,7 @@ def run_search(config):
     print(outfile)
 
     with outfile.open('w') as fp:
-        search = Search(rule, p, q, seed, layers=6, file=fp)
+        search = Search(rule, p, q, seed, layers=6, file=fp, init=(0.5, 20))
         search.print_config()
         search.run()
 
