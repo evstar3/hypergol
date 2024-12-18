@@ -16,10 +16,10 @@ def main():
         description='Hyperbolic cellular automata simulator'
     )
 
-    parser.add_argument('rule', type=str)
     parser.add_argument('p', help='number of sides to a polygon', type=int)
     parser.add_argument('q', help='number of polygons around a vertex', type=int)
-    parser.add_argument('-l', '--layers', help='number of layers to initially generate. default: 5', type=int, required=False, default=5)
+    parser.add_argument('rule', type=str)
+    parser.add_argument('-l', '--layers', help='number of layers to initially generate. default: 6', type=int, required=False, default=6)
     parser.add_argument('-s', '--seed', type=int)
 
     args = parser.parse_args()

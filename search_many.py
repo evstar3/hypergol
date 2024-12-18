@@ -11,14 +11,14 @@ from types import SimpleNamespace
 
 from search import Search
 
-ROOT_PATH = Path('results3')
+ROOT_PATH = Path('results4')
 GEOMETRIES = (
-    (3, 7),
-    (4, 5),
-    (5, 4),
-    (6, 4),
-    (7, 3),
-    (8, 3)
+    ((3, 7), 6),
+    ((4, 5), 6),
+    ((5, 4), 6),
+    ((6, 4), 5),
+    ((7, 3), 6),
+    ((8, 3), 6),
 )
 RUNNING = True
 
@@ -39,7 +39,7 @@ def random_rule(max_neighbors):
     ))
 
 def run_search(config):
-    rule, p, q, seed = config
+    rule, p, q, layers, seed = config
 
     outfile = Path(ROOT_PATH, f'{p}_{q}', rule.replace(' ', '_'), str(seed))
 
@@ -57,7 +57,8 @@ def run_search(config):
 
 def config_generator():
     while RUNNING:
-        p, q = random.choice(GEOMETRIES)
+        geometry, layers = random.choice(GEOMETRIES)
+        p, q = geometry
         max_neighbors = p * (q - 2)
         rule = random_rule(max_neighbors)
 
@@ -65,7 +66,7 @@ def config_generator():
             if not RUNNING:
                 break
             seed = random.randrange(2 ** 64)
-            yield (rule, p, q, seed)
+            yield (rule, p, q, layers, seed)
 
 def main():
     parser = argparse.ArgumentParser()

@@ -139,9 +139,9 @@ def main(args=None):
     if args is None:
         parser = argparse.ArgumentParser()
 
-        parser.add_argument('rule', type=str)
         parser.add_argument('p', help='number of sides to a polygon', type=int)
         parser.add_argument('q', help='number of polygons around a vertex', type=int)
+        parser.add_argument('rule', type=str)
         parser.add_argument('-l', '--layers', type=int)
         parser.add_argument('-n', '--max-steps', type=int)
         parser.add_argument('-s', '--seed', type=int, default=time.time_ns())
