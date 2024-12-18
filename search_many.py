@@ -11,14 +11,14 @@ from types import SimpleNamespace
 
 from search import Search
 
-ROOT_PATH = Path('results4')
+ROOT_PATH = Path('smallset')
 GEOMETRIES = (
-    ((3, 7), 6),
-    ((4, 5), 6),
-    ((5, 4), 6),
-    ((6, 4), 5),
-    ((7, 3), 6),
-    ((8, 3), 6),
+    (3, 7),
+    (4, 5),
+    (5, 4),
+    (6, 4),
+    (7, 3),
+    (8, 3),
 )
 RUNNING = True
 
@@ -26,10 +26,14 @@ def random_rule(max_neighbors):
     born = set()
     survive = set()
 
+    # being born on 0 neighbors is BORING
+    for i in range(1, max_neighbors + 1):
+        if random.choice([True, False]):
+            born.add(i)
+
     for i in range(max_neighbors + 1):
-        for collection in (born, survive):
-            if random.choice([True, False]):
-                collection.add(i)
+        if random.choice([True, False]):
+            survive.add(i)
 
     return ' '.join((
         'b',
@@ -39,25 +43,22 @@ def random_rule(max_neighbors):
     ))
 
 def run_search(config):
-    rule, p, q, layers, seed = config
+    rule, p, q, seed = config
 
     outfile = Path(ROOT_PATH, f'{p}_{q}', rule.replace(' ', '_'), str(seed))
 
-    if outfile.parent.is_dir():
-        return
+    print(outfile)
 
     outfile.parent.mkdir(parents=True, exist_ok=True)
 
-    print(outfile)
-
     with outfile.open('w') as fp:
-        search = Search(rule, p, q, seed, layers=6, file=fp, init=(0.5, 20))
+        search = Search(rule, p, q, seed, layers=5, file=fp, init=(0.5, 20))
         search.print_config()
         search.run()
 
 def config_generator():
     while RUNNING:
-        geometry, layers = random.choice(GEOMETRIES)
+        geometry = random.choice(GEOMETRIES)
         p, q = geometry
         max_neighbors = p * (q - 2)
         rule = random_rule(max_neighbors)
@@ -66,7 +67,7 @@ def config_generator():
             if not RUNNING:
                 break
             seed = random.randrange(2 ** 64)
-            yield (rule, p, q, layers, seed)
+            yield (rule, p, q, seed)
 
 def main():
     parser = argparse.ArgumentParser()
