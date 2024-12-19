@@ -27,13 +27,16 @@ class HyperbolicAutomaton():
         ALIVE = enum.auto()
         DEAD = enum.auto()
 
-    def __init__(self, rule_str, *args):
+    def __init__(self, rule_str, *args, init_prob=None, init_limit=None):
         self.tiling = HyperbolicTiling(*args, kernel='SRG')
         self.tiling.translate = types.MethodType(fixed_translate, self.tiling)
 
         self.center = self.tiling.get_center(0)
 
-        self.states = [self.States.DEAD] * len(self.tiling)
+        if init_prob is None:
+            init_prob = 0
+
+        self.randomize(init_prob, limit=init_limit)
 
         self.set_rule(rule_str)
 
@@ -86,7 +89,7 @@ class HyperbolicAutomaton():
             self.states += [self.States.DEAD] * (len(self.tiling) - len(self.states))
 
     def step(self):
-        new_states = [self.States.DEAD] * len(self.tiling)
+        new_states = []
 
         for i in self.tiling.polygons:
             neighbors = self.tiling.get_nbrs(i)
@@ -95,13 +98,20 @@ class HyperbolicAutomaton():
 
             if ((self.states[i] == self.States.ALIVE and nbrs_alive in self._survive)
                     or (self.states[i] == self.States.DEAD and nbrs_alive in self._born)):
-                new_states[i] = self.States.ALIVE
+                new_states.append(self.States.ALIVE)
+            else:
+                new_states.append(self.States.DEAD)
 
         self.states = new_states
 
-    def randomize(self, p_alive=0.5, limit=None):
+    def randomize(self, p_alive, limit=None):
         if limit is None:
-            limit = len(self.states)
+            limit = len(self.tiling)
 
-        for i in range(len(self.states[:limit])):
-            self.states[i] = self.States.ALIVE if random.random() < p_alive else self.States.DEAD
+        states = []
+        for i in range(limit):
+            states.append(self.States.ALIVE if random.random() < p_alive else self.States.DEAD)
+
+        states += [self.States.DEAD] * (len(self.tiling) - limit)
+
+        self.states = states

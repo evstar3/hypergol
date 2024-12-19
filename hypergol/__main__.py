@@ -19,10 +19,10 @@ def main():
     parser.add_argument('p', help='number of sides to a polygon', type=int)
     parser.add_argument('q', help='number of polygons around a vertex', type=int)
     parser.add_argument('rule', help='format: b[0-9 ]+s[0-9 ]+', type=str)
-    parser.add_argument('-l', '--layers', help='number of layers to initially generate. default: 6', type=int, required=False, default=6)
+    parser.add_argument('-l', '--layers', help='number of layers to initially generate. default: 5', type=int, required=False, default=5)
     parser.add_argument('-s', '--seed', type=int)
     parser.add_argument('-p', '--init-prob', help='probability of making a cell alive during random automaton initialization', type=float)
-    parser.add_argument('-n', '--init-limit', help='maximum number of cells to randomize at initialization', type=int)
+    parser.add_argument('-n', '--init-limit', help='limit number of cells to randomize at initialization', type=int)
 
     args = parser.parse_args()
 

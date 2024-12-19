@@ -43,7 +43,7 @@ def random_rule(max_neighbors):
     ))
 
 def run_search(config):
-    rule, p, q, seed = config
+    rule, p, q, layers, seed, init_prob, init_limit = config
 
     outfile = Path(ROOT_PATH, f'{p}_{q}', rule.replace(' ', '_'), str(seed))
 
@@ -52,11 +52,11 @@ def run_search(config):
     outfile.parent.mkdir(parents=True, exist_ok=True)
 
     with outfile.open('w') as fp:
-        search = Search(rule, p, q, seed, layers=5, file=fp, init=(0.5, 20))
+        search = Search(rule, p, q, layers, seed, file=fp, init_prob=init_prob, init_limit=init_limit)
         search.print_config()
         search.run()
 
-def config_generator():
+def config_generator(layers, init_prob, init_limit):
     while RUNNING:
         geometry = random.choice(GEOMETRIES)
         p, q = geometry
@@ -67,11 +67,15 @@ def config_generator():
             if not RUNNING:
                 break
             seed = random.randrange(2 ** 64)
-            yield (rule, p, q, seed)
+            yield (rule, p, q, layers, seed, init_prob, init_limit)
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-j', '--jobs', type=int, default=4)
+    parser.add_argument('-l', '--layers', help='number of layers to initially generate. default: 5', type=int, required=False, default=5)
+    parser.add_argument('-p', '--init-prob', help='probability of making a cell alive during random automaton initialization. default: 0.5',
+                        type=float, default=0.5)
+    parser.add_argument('-n', '--init-limit', help='limit number of cells to randomize at initialization', type=int)
 
     args = parser.parse_args()
 
@@ -91,7 +95,7 @@ def main():
     signal.signal(signal.SIGINT, graceful_shutdown)
     signal.signal(signal.SIGTERM, graceful_shutdown)
 
-    for config in config_generator():
+    for config in config_generator(args.layers, args.init_prob, args.init_limit):
         if len(children) == max_children:
             while True:
                 if not RUNNING:

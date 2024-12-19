@@ -154,8 +154,8 @@ class HypergolShell(cmd.Cmd):
             print(self.rate)
 
     def do_randomize(self, arg):
-        '''Randomize all cells with equal probabilities:   randomize
-Randomize all cells with probability of being alive:   randomize 0.2
+        '''Randomize all cells with equal state probability:   randomize
+Randomize all cells and set probability of being alive:   randomize 0.2
 Randomize cells 0 (inclusive) through 20 (exclusive) with probability of being alive:   randomize 0.5 20'''
 
         args = arg.split()
@@ -163,7 +163,6 @@ Randomize cells 0 (inclusive) through 20 (exclusive) with probability of being a
         if args:
             try:
                 p_alive = float(args.pop(0))
-
                 if not 0 <= p_alive <= 1:
                     raise ValueError
             except ValueError:
@@ -175,7 +174,6 @@ Randomize cells 0 (inclusive) through 20 (exclusive) with probability of being a
         if args:
             try:
                 limit = int(args.pop(0))
-
                 if not limit > 0:
                     raise ValueError
             except ValueError:
@@ -185,7 +183,7 @@ Randomize cells 0 (inclusive) through 20 (exclusive) with probability of being a
             limit = None
 
         with self.automaton_lock:
-            self.automaton.randomize(p_alive=p_alive, limit=limit)
+            self.automaton.randomize(p_alive, limit=limit)
         self.draw_barrier.wait()
 
     def do_move(self, arg):
