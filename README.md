@@ -1,13 +1,13 @@
-# Hypergol
+# HyperGoL
 Author: Evan Day
 
 ## Overview
 
-**Hypergol** is a cellular automata simulator for non-Euclidean hyperbolic regular tilings.
+**HyperGoL** is a cellular automata simulator for non-Euclidean hyperbolic regular tilings.
 
 ## Building
 
-Hypergol's required libraries can be found in `requirements.txt`. To easily install these into a Python virtual environment, run the following commands.
+HyperGoL's required libraries can be found in `requirements.txt`. To easily install these into a Python virtual environment, run the following commands.
 
 ```sh
 python3 -m venv .venv
@@ -17,7 +17,7 @@ python3 -m pip install -r requirements.txt
 
 ## Usage
 
-Hypergol is built as a Python package and can be run with `python3 -m hypergol`.
+HyperGoL is built as a Python package and can be run with `python3 -m hypergol`.
 
 ```bash
 $ python3 -m hypergol --help
