@@ -10,6 +10,7 @@ import matplotlib.colors as mcolors
 from hypertiling.graphics.plot import plot_tiling, convert_polygons_to_patches
 
 class HypergolShell(cmd.Cmd):
+    intro = 'Welcome to the hypergol shell. Type help or ? to list commands.'
     prompt = '(hypergol) '
 
     def __init__(self, automaton):
