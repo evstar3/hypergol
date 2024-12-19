@@ -11,7 +11,6 @@ from types import SimpleNamespace
 
 from search import Search
 
-ROOT_PATH = Path('smallset2')
 GEOMETRIES = (
     (3, 7),
     (4, 5),
@@ -42,10 +41,10 @@ def random_rule(max_neighbors):
         ' '.join(map(str, sorted(survive))),
     ))
 
-def run_search(config):
+def run_search(root_path, config):
     rule, p, q, layers, seed, init_prob, init_limit = config
 
-    outfile = Path(ROOT_PATH, f'{p}_{q}', rule.replace(' ', '_'), str(seed))
+    outfile = Path(root_path, f'{p}_{q}', rule.replace(' ', '_'), str(seed))
 
     print(outfile)
 
@@ -71,11 +70,12 @@ def config_generator(layers, init_prob, init_limit):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-j', '--jobs', type=int, default=4)
+    parser.add_argument('-j', '--jobs', help='default: 1', type=int, default=1)
     parser.add_argument('-l', '--layers', help='number of layers to initially generate. default: 5', type=int, required=False, default=5)
     parser.add_argument('-p', '--init-prob', help='probability of making a cell alive during random automaton initialization. default: 0.5',
                         type=float, default=0.5)
     parser.add_argument('-n', '--init-limit', help='limit number of cells to randomize at initialization', type=int)
+    parser.add_argument('-r', '--root', help='root directory to save all outfiles', type=Path, default=Path.cwd())
 
     args = parser.parse_args()
 
@@ -116,7 +116,7 @@ def main():
                 # child process
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
                 signal.signal(signal.SIGTERM, signal.SIG_IGN)
-                run_search(config)
+                run_search(args.root, config)
                 sys.exit(0)
             else:
                 children.add(pid)

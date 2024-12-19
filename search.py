@@ -94,7 +94,7 @@ class Search():
                 sd_count = statistics.stdev(counts)
                 print(f'{state_type.name} STDEV_COUNT={sd_count}', file=self.file)
 
-                diffs = [counts[i + 1] - counts[i] for i in range(self.current_generation - 1)]
+                diffs = [counts[i + 1] - counts[i] for i in range(len(counts) - 1)]
                 max_diff = max(diffs)
                 min_diff = min(diffs)
                 print(f'{state_type.name} MAX_DIFF={max_diff}', file=self.file)
