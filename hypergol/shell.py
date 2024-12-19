@@ -67,13 +67,13 @@ class HypergolShell(cmd.Cmd):
         self.fig.canvas.flush_events()
 
     def do_number(self, arg):
-        '''Set numbering on / off:   number off'''
+        '''Toggle numbering:   number\nSet numbering on / off:   number off'''
         if arg == 'on':
             self.draw_indices = True
         elif arg == 'off':
             self.draw_indices = False
         else:
-            print(f'unrecognized option: {arg}')
+            self.draw_indices = not self.draw_indices
         self.draw_barrier.wait()
 
     def do_set(self, arg):
