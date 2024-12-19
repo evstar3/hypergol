@@ -11,7 +11,7 @@ from types import SimpleNamespace
 
 from search import Search
 
-ROOT_PATH = Path('smallset')
+ROOT_PATH = Path('smallset2')
 GEOMETRIES = (
     (3, 7),
     (4, 5),

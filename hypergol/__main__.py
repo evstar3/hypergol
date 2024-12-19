@@ -21,6 +21,7 @@ def main():
     parser.add_argument('rule', type=str)
     parser.add_argument('-l', '--layers', help='number of layers to initially generate. default: 6', type=int, required=False, default=6)
     parser.add_argument('-s', '--seed', type=int)
+    parser.add_argument('-i', '--init', nargs='+')
 
     args = parser.parse_args()
 
@@ -30,6 +31,14 @@ def main():
     random.seed(args.seed)
 
     automaton = HyperbolicAutomaton(args.rule, args.p, args.q, args.layers)
+
+    if args.init:
+        if len(args.init) == 1:
+            automaton.randomize(p_alive=float(args.init[0]))
+        elif len(args.init) == 2:
+            automaton.randomize(p_alive=float(args.init[0]), limit=int(args.init[1]))
+        else:
+            raise RuntimeError('too many arguments to --init')
 
     with HypergolShell(automaton) as shell:
         plt.ion()
