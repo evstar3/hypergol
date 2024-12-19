@@ -1,4 +1,4 @@
-# Hypergol
+# HyperGoL
 Author: Evan Day
 
 ## Overview
