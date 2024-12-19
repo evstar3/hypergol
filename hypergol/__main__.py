@@ -18,10 +18,11 @@ def main():
 
     parser.add_argument('p', help='number of sides to a polygon', type=int)
     parser.add_argument('q', help='number of polygons around a vertex', type=int)
-    parser.add_argument('rule', type=str)
+    parser.add_argument('rule', help='format: b[0-9 ]+s[0-9 ]+', type=str)
     parser.add_argument('-l', '--layers', help='number of layers to initially generate. default: 6', type=int, required=False, default=6)
     parser.add_argument('-s', '--seed', type=int)
-    parser.add_argument('-i', '--init', nargs='+')
+    parser.add_argument('-p', '--init-prob', help='probability of making a cell alive during random automaton initialization', type=float)
+    parser.add_argument('-n', '--init-limit', help='maximum number of cells to randomize at initialization', type=int)
 
     args = parser.parse_args()
 
@@ -32,13 +33,12 @@ def main():
 
     automaton = HyperbolicAutomaton(args.rule, args.p, args.q, args.layers)
 
-    if args.init:
-        if len(args.init) == 1:
-            automaton.randomize(p_alive=float(args.init[0]))
-        elif len(args.init) == 2:
-            automaton.randomize(p_alive=float(args.init[0]), limit=int(args.init[1]))
-        else:
-            raise RuntimeError('too many arguments to --init')
+    if args.init_prob and args.init_limit:
+        automaton.randomize(p_alive=args.init_prob, limit=args.init_limit)
+    elif args.init_prob:
+        automaton.randomize(p_alive=args.init_prob)
+    elif args.init_limit:
+        raise RuntimeError('--init-limit must be used with --init-prob')
 
     with HypergolShell(automaton) as shell:
         plt.ion()
